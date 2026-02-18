@@ -17,9 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from .views import api_root
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    
+    # API Root
+    path('api/', api_root, name='api-root'),
     
     # API endpoints
     path('api/users/', include('users.urls')),

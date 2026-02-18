@@ -86,16 +86,25 @@ WSGI_APPLICATION = "booking_system.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Use SQLite for development (no server needed)
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME', default='booking_system_db'),
-        "USER": config('DB_USER', default='postgres'),
-        "PASSWORD": config('DB_PASSWORD', default='postgres'),
-        "HOST": config('DB_HOST', default='localhost'),
-        "PORT": config('DB_PORT', default='5432'),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# Uncomment below for PostgreSQL (requires PostgreSQL server running)
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": config('DB_NAME', default='booking_system_db'),
+#         "USER": config('DB_USER', default='postgres'),
+#         "PASSWORD": config('DB_PASSWORD', default='postgres'),
+#         "HOST": config('DB_HOST', default='localhost'),
+#         "PORT": config('DB_PORT', default='5432'),
+#     }
+# }
 
 
 # Password validation
@@ -154,6 +163,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',  # Enables browsable API
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
