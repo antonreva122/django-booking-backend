@@ -7,6 +7,9 @@ Django==6.0.2
 # PostgreSQL adapter
 psycopg2-binary==2.9.9
 
+# Database URL parser for Render
+dj-database-url==2.1.0
+
 # Django REST Framework
 djangorestframework==3.14.0
 
@@ -35,3 +38,9 @@ black==24.1.1
 
 # Timezone support
 pytz==2024.1
+
+# Production server
+gunicorn==21.2.0
+
+# Static files in production
+whitenoise==6.6.0
