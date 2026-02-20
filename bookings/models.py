@@ -133,5 +133,7 @@ class Booking(models.Model):
         Calculate total price for the booking.
         """
         if self.resource.price_per_hour:
-            return self.resource.price_per_hour * self.get_duration_hours()
+            from decimal import Decimal
+            duration = Decimal(str(self.get_duration_hours()))
+            return self.resource.price_per_hour * duration
         return 0
