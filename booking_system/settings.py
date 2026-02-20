@@ -230,13 +230,11 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Email Settings - SendGrid Configuration
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')  # SendGrid uses 'apikey' as username
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Your SendGrid API Key
+# Email Settings - SendGrid Web API
+# Only need these two environment variables:
+# - SENDGRID_API_KEY: Your SendGrid API key (starts with SG.)
+# - DEFAULT_FROM_EMAIL: Your verified sender email
+SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@yourdomain.com')
 
 # Frontend URL

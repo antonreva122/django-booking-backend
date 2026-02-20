@@ -1,10 +1,50 @@
 """
-Email utility functions for sending transactional emails.
+Email utility functions for sending transactional emails using SendGrid Web API.
 """
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
+import logging
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from django.conf import settings
-from django.utils.html import strip_tags
+
+logger = logging.getLogger(__name__)
+
+
+def _send_email_via_sendgrid(to_email, subject, html_content):
+    """
+    Helper function to send email via SendGrid Web API.
+    
+    Args:
+        to_email: Recipient email address
+        subject: Email subject
+        html_content: HTML email content
+    
+    Returns:
+        bool: True if sent successfully, False otherwise
+    """
+    try:
+        api_key = os.getenv('SENDGRID_API_KEY')
+        from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@yourdomain.com')
+        
+        if not api_key:
+            logger.warning("SENDGRID_API_KEY not set - email not sent")
+            return False
+        
+        message = Mail(
+            from_email=from_email,
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        
+        sg = SendGridAPIClient(api_key)
+        response = sg.send(message)
+        
+        logger.info(f"Email sent to {to_email}. Status: {response.status_code}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        return False
 
 
 def send_password_reset_email(user_email, reset_link, user_name=""):
@@ -58,34 +98,7 @@ def send_password_reset_email(user_email, reset_link, user_name=""):
     </html>
     """
     
-    # Plain text version
-    plain_message = f"""
-    Password Reset Request
-    
-    Hello {user_name or 'there'},
-    
-    We received a request to reset your password for your Booking System account.
-    
-    Click the link below to reset your password. This link will expire in 24 hours.
-    
-    {reset_link}
-    
-    If you didn't request this password reset, please ignore this email.
-    
-    For security reasons, this reset link will expire in 24 hours.
-    
-    © 2026 Booking System. All rights reserved.
-    This is an automated email, please do not reply.
-    """
-    
-    send_mail(
-        subject=subject,
-        message=plain_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user_email],
-        html_message=html_message,
-        fail_silently=False,
-    )
+    _send_email_via_sendgrid(user_email, subject, html_message)
 
 
 def send_booking_confirmation_email(user_email, booking_details, user_name=""):
@@ -158,37 +171,7 @@ def send_booking_confirmation_email(user_email, booking_details, user_name=""):
     </html>
     """
     
-    # Plain text version
-    plain_message = f"""
-    Booking Confirmed
-    
-    Hello {user_name or 'there'},
-    
-    Your booking has been successfully confirmed!
-    
-    Booking Details:
-    ----------------
-    Booking ID: #{booking_id}
-    Resource: {resource_name}
-    Date: {booking_date}
-    Time: {start_time} - {end_time}
-    
-    Please arrive on time and bring any necessary identification.
-    
-    If you need to cancel or modify your booking, please log in to your account.
-    
-    © 2026 Booking System. All rights reserved.
-    This is an automated email, please do not reply.
-    """
-    
-    send_mail(
-        subject=subject,
-        message=plain_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user_email],
-        html_message=html_message,
-        fail_silently=False,
-    )
+    _send_email_via_sendgrid(user_email, subject, html_message)
 
 
 def send_booking_cancellation_email(user_email, booking_details, user_name=""):
@@ -245,29 +228,4 @@ def send_booking_cancellation_email(user_email, booking_details, user_name=""):
     </html>
     """
     
-    plain_message = f"""
-    Booking Cancelled
-    
-    Hello {user_name or 'there'},
-    
-    Your booking has been cancelled.
-    
-    Cancelled Booking:
-    - Booking ID: #{booking_id}
-    - Resource: {resource_name}
-    - Date: {booking_date}
-    - Time: {start_time}
-    
-    You can make a new booking anytime by logging into your account.
-    
-    © 2026 Booking System. All rights reserved.
-    """
-    
-    send_mail(
-        subject=subject,
-        message=plain_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user_email],
-        html_message=html_message,
-        fail_silently=False,
-    )
+    _send_email_via_sendgrid(user_email, subject, html_message)
