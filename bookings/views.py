@@ -94,7 +94,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking_details = {
                 'booking_id': booking.id,
                 'resource_name': booking.resource.name,
-                'date': booking.date.strftime('%B %d, %Y'),
+                'date': booking.booking_date.strftime('%B %d, %Y'),
                 'start_time': booking.start_time.strftime('%I:%M %p'),
                 'end_time': booking.end_time.strftime('%I:%M %p'),
             }
@@ -129,7 +129,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking_details = {
                 'booking_id': booking.id,
                 'resource_name': booking.resource.name,
-                'date': booking.date.strftime('%B %d, %Y'),
+                'date': booking.booking_date.strftime('%B %d, %Y'),
                 'start_time': booking.start_time.strftime('%I:%M %p'),
             }
             send_booking_cancellation_email(
