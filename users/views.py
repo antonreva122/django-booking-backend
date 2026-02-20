@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from django.conf import settings
 from datetime import timedelta
 import secrets
 
@@ -16,6 +17,7 @@ from .serializers import (
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
 )
+from .email_utils import send_password_reset_email
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -194,13 +196,21 @@ class PasswordResetRequestView(APIView):
                 expires_at=expires_at
             )
             
-            # TODO: Send email with reset link
-            # For now, return the token (in production, only send via email)
-            reset_link = f"http://localhost:3000/reset-password?token={token}"
+            # Send password reset email
+            reset_link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+            
+            try:
+                send_password_reset_email(
+                    user_email=user.email,
+                    reset_link=reset_link,
+                    user_name=user.get_full_name() or user.username
+                )
+            except Exception as e:
+                # Log the error but don't reveal it to the user
+                print(f"Failed to send password reset email: {e}")
             
             return Response({
-                'message': 'Password reset email sent',
-                'reset_link': reset_link  # Remove this in production
+                'message': 'If the email exists, a password reset link has been sent'
             }, status=status.HTTP_200_OK)
             
         except User.DoesNotExist:
