@@ -33,10 +33,18 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'user', 'created_at', 'updated_at')
     
     def get_duration_hours(self, obj):
-        return obj.get_duration_hours()
+        try:
+            return obj.get_duration_hours()
+        except Exception as e:
+            print(f"Error calculating duration for booking {obj.id}: {e}")
+            return 0
     
     def get_total_price(self, obj):
-        return float(obj.calculate_total_price())
+        try:
+            return float(obj.calculate_total_price())
+        except Exception as e:
+            print(f"Error calculating price for booking {obj.id}: {e}")
+            return 0.0
     
     def validate_booking_date(self, value):
         """
