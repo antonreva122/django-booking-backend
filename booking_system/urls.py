@@ -21,11 +21,9 @@ from .views import api_root
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    
     # API Root
-    path('api/', api_root, name='api-root'),
-    
+    path("api/", api_root, name="api-root"),
     # API endpoints
-    path('api/users/', include('users.urls')),
-    path('api/bookings/', include('bookings.urls')),
+    path("api/users/", include("users.urls")),
+    path("api/bookings/", include("bookings.urls")),
 ]

@@ -41,6 +41,7 @@ pytest-django==4.7.0
 # Code quality
 flake8==7.0.0
 black==24.1.1
+isort==5.13.2
 
 # Timezone support
 pytz==2024.1

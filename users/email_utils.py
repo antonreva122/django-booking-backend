@@ -1,11 +1,11 @@
 """
 Email utility functions for sending transactional emails using SendGrid Web API.
 """
+
 import logging
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -13,33 +13,30 @@ logger = logging.getLogger(__name__)
 def _send_email_via_sendgrid(to_email, subject, html_content):
     """
     Helper function to send email via SendGrid Web API.
-    
+
     Args:
         to_email: Recipient email address
         subject: Email subject
         html_content: HTML email content
-    
+
     Returns:
         bool: True if sent successfully, False otherwise
     """
     try:
-        api_key = os.getenv('SENDGRID_API_KEY')
-        from_email = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@yourdomain.com')
-        
+        api_key = os.getenv("SENDGRID_API_KEY")
+        from_email = os.getenv("DEFAULT_FROM_EMAIL", "noreply@yourdomain.com")
+
         if not api_key:
             logger.warning("SENDGRID_API_KEY not set - email not sent")
             return False
-        
+
         message = Mail(
-            from_email=from_email,
-            to_emails=to_email,
-            subject=subject,
-            html_content=html_content
+            from_email=from_email, to_emails=to_email, subject=subject, html_content=html_content
         )
-        
+
         sg = SendGridAPIClient(api_key)
         response = sg.send(message)
-        
+
         logger.info(f"Email sent to {to_email}. Status: {response.status_code}")
         return True
     except Exception as e:
@@ -50,14 +47,14 @@ def _send_email_via_sendgrid(to_email, subject, html_content):
 def send_password_reset_email(user_email, reset_link, user_name=""):
     """
     Send password reset email to user.
-    
+
     Args:
         user_email: User's email address
         reset_link: Password reset link with token
         user_name: User's name (optional)
     """
-    subject = 'Reset Your Password - Booking System'
-    
+    subject = "Reset Your Password - Booking System"
+
     # HTML email content
     html_message = f"""
     <!DOCTYPE html>
@@ -97,27 +94,27 @@ def send_password_reset_email(user_email, reset_link, user_name=""):
     </body>
     </html>
     """
-    
+
     _send_email_via_sendgrid(user_email, subject, html_message)
 
 
 def send_booking_confirmation_email(user_email, booking_details, user_name=""):
     """
     Send booking confirmation email to user.
-    
+
     Args:
         user_email: User's email address
         booking_details: Dictionary containing booking information
         user_name: User's name (optional)
     """
-    subject = 'Booking Confirmation - Booking System'
-    
-    resource_name = booking_details.get('resource_name', 'Resource')
-    booking_date = booking_details.get('date', '')
-    start_time = booking_details.get('start_time', '')
-    end_time = booking_details.get('end_time', '')
-    booking_id = booking_details.get('booking_id', '')
-    
+    subject = "Booking Confirmation - Booking System"
+
+    resource_name = booking_details.get("resource_name", "Resource")
+    booking_date = booking_details.get("date", "")
+    start_time = booking_details.get("start_time", "")
+    end_time = booking_details.get("end_time", "")
+    booking_id = booking_details.get("booking_id", "")
+
     # HTML email content
     html_message = f"""
     <!DOCTYPE html>
@@ -142,7 +139,7 @@ def send_booking_confirmation_email(user_email, booking_details, user_name=""):
             <div class="content">
                 <p>Hello {user_name or 'there'},</p>
                 <p>Your booking has been successfully confirmed!</p>
-                
+
                 <div class="booking-details">
                     <h3 style="margin-top: 0; color: #667eea;">Booking Details</h3>
                     <div class="detail-row">
@@ -158,7 +155,7 @@ def send_booking_confirmation_email(user_email, booking_details, user_name=""):
                         <span class="detail-label">Time:</span> {start_time} - {end_time}
                     </div>
                 </div>
-                
+
                 <p>Please arrive on time and bring any necessary identification.</p>
                 <p>If you need to cancel or modify your booking, please log in to your account.</p>
             </div>
@@ -170,26 +167,26 @@ def send_booking_confirmation_email(user_email, booking_details, user_name=""):
     </body>
     </html>
     """
-    
+
     _send_email_via_sendgrid(user_email, subject, html_message)
 
 
 def send_booking_cancellation_email(user_email, booking_details, user_name=""):
     """
     Send booking cancellation email to user.
-    
+
     Args:
         user_email: User's email address
         booking_details: Dictionary containing booking information
         user_name: User's name (optional)
     """
-    subject = 'Booking Cancelled - Booking System'
-    
-    resource_name = booking_details.get('resource_name', 'Resource')
-    booking_date = booking_details.get('date', '')
-    start_time = booking_details.get('start_time', '')
-    booking_id = booking_details.get('booking_id', '')
-    
+    subject = "Booking Cancelled - Booking System"
+
+    resource_name = booking_details.get("resource_name", "Resource")
+    booking_date = booking_details.get("date", "")
+    start_time = booking_details.get("start_time", "")
+    booking_id = booking_details.get("booking_id", "")
+
     # HTML email content
     html_message = f"""
     <!DOCTYPE html>
@@ -227,5 +224,5 @@ def send_booking_cancellation_email(user_email, booking_details, user_name=""):
     </body>
     </html>
     """
-    
+
     _send_email_via_sendgrid(user_email, subject, html_message)
