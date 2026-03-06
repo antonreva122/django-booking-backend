@@ -10,6 +10,7 @@ class User(AbstractUser):
     """
     email = models.EmailField(_('email address'), unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
+    profile_image = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary image URL")
     email_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

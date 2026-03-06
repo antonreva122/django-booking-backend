@@ -25,6 +25,9 @@ python-decouple==3.8
 # SendGrid for email sending
 sendgrid==6.11.0
 
+# Cloudinary for image uploads
+cloudinary==1.36.0
+
 # Email backend (for development)
 django-environ==0.11.2
 

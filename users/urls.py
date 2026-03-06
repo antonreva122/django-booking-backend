@@ -10,6 +10,7 @@ from .views import (
     PasswordResetConfirmView,
     LogoutView,
 )
+from .image_views import upload_profile_image, delete_profile_image
 
 urlpatterns = [
     # Authentication
@@ -21,6 +22,8 @@ urlpatterns = [
     # Profile Management
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('profile/update/', UserUpdateView.as_view(), name='profile_update'),
+    path('profile/image/upload/', upload_profile_image, name='profile_image_upload'),
+    path('profile/image/delete/', delete_profile_image, name='profile_image_delete'),
     path('password/change/', PasswordChangeView.as_view(), name='password_change'),
     
     # Password Reset
