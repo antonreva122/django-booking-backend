@@ -51,10 +51,18 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def get_duration_hours(self, obj):
         try:
-            return obj.get_duration_hours()
+            total_hours = obj.get_duration_hours()
+            hours = int(total_hours)
+            minutes = int((total_hours - hours) * 60)
+            if hours and minutes:
+                return f"{hours}h {minutes}min"
+            elif hours:
+                return f"{hours}h"
+            else:
+                return f"{minutes}min"
         except Exception as e:
             logger.warning("Error calculating duration for booking %s: %s", obj.id, e)
-            return 0
+            return "0min"
 
     def get_total_price(self, obj):
         try:
@@ -71,7 +79,8 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ("resource", "booking_date", "start_time", "end_time", "notes")
+        fields = ("id", "resource", "booking_date", "start_time", "end_time", "notes")
+        read_only_fields = ("id",)
 
     def validate_booking_date(self, value):
         """

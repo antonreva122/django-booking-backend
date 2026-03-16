@@ -327,3 +327,150 @@ class TestAvailabilityEndpoint:
     def test_invalid_resource(self, auth_client):
         response = auth_client.get(self.url, {"resource_id": 9999, "date": "2026-06-01"})
         assert response.status_code == 404
+
+    def test_invalid_date_format(self, auth_client, resource):
+        response = auth_client.get(self.url, {"resource_id": resource.id, "date": "bad-date"})
+        assert response.status_code == 400
+
+
+# ── Serializer Edge Case Tests ───────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestBookingSerializerDuration:
+    """Test the formatted duration output from BookingSerializer."""
+
+    def test_duration_hours_only(self, auth_client, booking):
+        """2-hour booking should show '2h'."""
+        response = auth_client.get(f"/api/bookings/list/{booking.id}/")
+        assert response.data["duration_hours"] == "2h"
+
+    def test_duration_minutes_only(self, auth_client, resource):
+        """10-minute booking should show '10min'."""
+        future_date = (date.today() + timedelta(days=5)).isoformat()
+        data = {
+            "resource": resource.id,
+            "booking_date": future_date,
+            "start_time": "09:00",
+            "end_time": "09:10",
+            "notes": "Quick meeting",
+        }
+        response = auth_client.post("/api/bookings/list/", data, format="json")
+        assert response.status_code == 201
+        booking_id = response.data["id"]
+        detail = auth_client.get(f"/api/bookings/list/{booking_id}/")
+        assert detail.data["duration_hours"] == "10min"
+
+    def test_duration_hours_and_minutes(self, auth_client, resource):
+        """1.5-hour booking should show '1h 30min'."""
+        future_date = (date.today() + timedelta(days=5)).isoformat()
+        data = {
+            "resource": resource.id,
+            "booking_date": future_date,
+            "start_time": "14:00",
+            "end_time": "15:30",
+            "notes": "Long meeting",
+        }
+        response = auth_client.post("/api/bookings/list/", data, format="json")
+        assert response.status_code == 201
+        booking_id = response.data["id"]
+        detail = auth_client.get(f"/api/bookings/list/{booking_id}/")
+        assert detail.data["duration_hours"] == "1h 30min"
+
+
+@pytest.mark.django_db
+class TestBookingCreateValidation:
+    url = "/api/bookings/list/"
+
+    def test_create_past_date_rejected(self, auth_client, resource):
+        past_date = (date.today() - timedelta(days=1)).isoformat()
+        data = {
+            "resource": resource.id,
+            "booking_date": past_date,
+            "start_time": "09:00",
+            "end_time": "10:00",
+        }
+        response = auth_client.post(self.url, data, format="json")
+        assert response.status_code == 400
+
+    def test_create_end_before_start_rejected(self, auth_client, resource):
+        future_date = (date.today() + timedelta(days=5)).isoformat()
+        data = {
+            "resource": resource.id,
+            "booking_date": future_date,
+            "start_time": "14:00",
+            "end_time": "12:00",
+        }
+        response = auth_client.post(self.url, data, format="json")
+        assert response.status_code == 400
+
+    def test_create_unavailable_resource_rejected(self, auth_client, db):
+        unavailable = Resource.objects.create(
+            name="Closed Room",
+            resource_type="ROOM",
+            is_available=False,
+        )
+        future_date = (date.today() + timedelta(days=5)).isoformat()
+        data = {
+            "resource": unavailable.id,
+            "booking_date": future_date,
+            "start_time": "09:00",
+            "end_time": "10:00",
+        }
+        response = auth_client.post(self.url, data, format="json")
+        assert response.status_code == 400
+
+
+@pytest.mark.django_db
+class TestBookingUpdateValidation:
+    def test_update_end_before_start_rejected(self, auth_client, booking):
+        data = {
+            "start_time": "14:00",
+            "end_time": "12:00",
+        }
+        response = auth_client.patch(f"/api/bookings/list/{booking.id}/", data, format="json")
+        assert response.status_code == 400
+
+    def test_update_conflict_rejected(self, auth_client, booking, resource):
+        # Create a second booking
+        future_date = (date.today() + timedelta(days=5)).isoformat()
+        resp = auth_client.post(
+            "/api/bookings/list/",
+            {
+                "resource": resource.id,
+                "booking_date": future_date,
+                "start_time": "14:00",
+                "end_time": "16:00",
+            },
+            format="json",
+        )
+        second_id = resp.data["id"]
+        # Try to update it to overlap with the first booking
+        data = {
+            "booking_date": booking.booking_date.isoformat(),
+            "start_time": "11:00",
+            "end_time": "13:00",
+        }
+        response = auth_client.patch(f"/api/bookings/list/{second_id}/", data, format="json")
+        assert response.status_code == 400
+
+
+@pytest.mark.django_db
+class TestAutoCompletePastBookings:
+    def test_past_bookings_auto_completed(self, auth_client, user, resource, db):
+        """Bookings in the past should be auto-completed when querying."""
+        future_date = date.today() + timedelta(days=1)
+        booking = Booking.objects.create(
+            user=user,
+            resource=resource,
+            booking_date=future_date,
+            start_time=time(10, 0),
+            end_time=time(12, 0),
+            status="CONFIRMED",
+        )
+        # Move the date to the past via raw update (bypasses model clean)
+        Booking.objects.filter(pk=booking.pk).update(booking_date=date.today() - timedelta(days=2))
+        # Querying should trigger auto-complete
+        auth_client.get("/api/bookings/list/")
+        booking.refresh_from_db()
+        assert booking.status == "COMPLETED"

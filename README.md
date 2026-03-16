@@ -142,6 +142,33 @@ Run tests with:
 pytest
 ```
 
+### Test Coverage Report
+
+**90 tests | 94.41% total coverage**
+
+| Module | Stmts | Miss | Cover | Missing Lines |
+|--------|------:|-----:|------:|---------------|
+| `booking_system/settings.py` | 48 | 1 | 98% | 96 |
+| `booking_system/urls.py` | 4 | 0 | 100% | |
+| `booking_system/views.py` | 8 | 0 | 100% | |
+| `bookings/admin.py` | 17 | 0 | 100% | |
+| `bookings/apps.py` | 4 | 0 | 100% | |
+| `bookings/management/commands/complete_past_bookings.py` | 9 | 0 | 100% | |
+| `bookings/models.py` | 69 | 1 | 99% | 73 |
+| `bookings/serializers.py` | 77 | 6 | 92% | 63-65, 70-72 |
+| `bookings/urls.py` | 7 | 0 | 100% | |
+| `bookings/views.py` | 104 | 6 | 94% | 31, 97, 120-122, 154-156 |
+| `users/admin.py` | 11 | 0 | 100% | |
+| `users/apps.py` | 4 | 0 | 100% | |
+| `users/email_utils.py` | 41 | 8 | 80% | 34-45 |
+| `users/image_views.py` | 46 | 2 | 96% | 58-59 |
+| `users/management/commands/create_superuser_from_env.py` | 18 | 0 | 100% | |
+| `users/models.py` | 32 | 0 | 100% | |
+| `users/serializers.py` | 45 | 1 | 98% | 107 |
+| `users/urls.py` | 5 | 0 | 100% | |
+| `users/views.py` | 123 | 5 | 96% | 85, 120-121, 220-222 |
+| **TOTAL** | **680** | **38** | **94%** | |
+
 ## Project Structure
 
 ```
@@ -149,19 +176,32 @@ django-booking-backend/
 ├── booking_system/          # Main project settings
 │   ├── settings.py         # Django settings
 │   ├── urls.py            # Main URL configuration
+│   ├── views.py           # API root view
 │   └── wsgi.py            # WSGI application
 ├── users/                  # User authentication app
 │   ├── models.py          # User and PasswordResetToken models
 │   ├── serializers.py     # DRF serializers
 │   ├── views.py           # API views
+│   ├── image_views.py     # Profile image upload/delete
+│   ├── email_utils.py     # SendGrid email helpers
 │   └── urls.py            # URL routing
 ├── bookings/              # Booking management app
 │   ├── models.py          # Booking and Resource models
 │   ├── serializers.py     # DRF serializers
 │   ├── views.py           # API views
-│   └── urls.py            # URL routing
+│   ├── urls.py            # URL routing
+│   └── management/commands/  # Management commands
+│       └── complete_past_bookings.py
+├── tests/                  # Test suite (90 tests, 94% coverage)
+│   ├── conftest.py        # Shared fixtures
+│   ├── test_users.py      # User auth & profile tests
+│   ├── test_bookings.py   # Booking & resource tests
+│   ├── test_image_views.py # Image upload/delete tests
+│   ├── test_commands.py   # Management command tests
+│   └── test_api_root.py   # API root endpoint test
 ├── manage.py              # Django management script
-└── requirements.txt       # Python dependencies
+├── requirements.txt       # Python dependencies
+└── pyproject.toml         # pytest & coverage config
 ```
 
 ## Environment Variables
