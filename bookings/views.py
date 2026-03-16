@@ -74,9 +74,20 @@ class BookingViewSet(viewsets.ModelViewSet):
         Users see only their bookings, admins see all.
         Auto-completes past bookings that are still PENDING or CONFIRMED.
         """
-        today = timezone.now().date()
+        now = timezone.now()
+        today = now.date()
+        current_time = now.time()
+
+        # Complete bookings from past dates
         Booking.objects.filter(
             booking_date__lt=today,
+            status__in=["PENDING", "CONFIRMED"],
+        ).update(status="COMPLETED")
+
+        # Complete today's bookings where end time has passed
+        Booking.objects.filter(
+            booking_date=today,
+            end_time__lte=current_time,
             status__in=["PENDING", "CONFIRMED"],
         ).update(status="COMPLETED")
 
