@@ -1,12 +1,17 @@
+import logging
+import secrets
+from datetime import timedelta
+
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.conf import settings
-from datetime import timedelta
-import secrets
+
+logger = logging.getLogger(__name__)
 
 from .models import User, PasswordResetToken
 from .serializers import (
@@ -28,6 +33,8 @@ class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -56,6 +63,8 @@ class UserLoginView(APIView):
     """
 
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def post(self, request):
         email = request.data.get("email")
@@ -99,11 +108,14 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        refresh_token = request.data.get("refresh_token")
+        if not refresh_token:
+            return Response(
+                {"error": "refresh_token is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
         try:
-            refresh_token = request.data.get("refresh_token")
-            if refresh_token:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
+            token = RefreshToken(refresh_token)
+            token.blacklist()
             return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -177,6 +189,8 @@ class PasswordResetRequestView(APIView):
     """
 
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
@@ -205,7 +219,7 @@ class PasswordResetRequestView(APIView):
                 )
             except Exception as e:
                 # Log the error but don't reveal it to the user
-                print(f"Failed to send password reset email: {e}")
+                logger.error("Failed to send password reset email: %s", e)
 
             return Response(
                 {"message": "If the email exists, a password reset link has been sent"},

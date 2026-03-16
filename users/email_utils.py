@@ -3,7 +3,8 @@ Email utility functions for sending transactional emails using SendGrid Web API.
 """
 
 import logging
-import os
+
+from django.conf import settings as django_settings
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -23,8 +24,8 @@ def _send_email_via_sendgrid(to_email, subject, html_content):
         bool: True if sent successfully, False otherwise
     """
     try:
-        api_key = os.getenv("SENDGRID_API_KEY")
-        from_email = os.getenv("DEFAULT_FROM_EMAIL", "noreply@yourdomain.com")
+        api_key = django_settings.SENDGRID_API_KEY
+        from_email = django_settings.DEFAULT_FROM_EMAIL
 
         if not api_key:
             logger.warning("SENDGRID_API_KEY not set - email not sent")

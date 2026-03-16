@@ -1,6 +1,11 @@
+import logging
+
 from rest_framework import serializers
-from .models import Booking, Resource
 from django.utils import timezone
+
+from .models import Booking, Resource
+
+logger = logging.getLogger(__name__)
 
 
 class ResourceSerializer(serializers.ModelSerializer):
@@ -48,43 +53,15 @@ class BookingSerializer(serializers.ModelSerializer):
         try:
             return obj.get_duration_hours()
         except Exception as e:
-            print(f"Error calculating duration for booking {obj.id}: {e}")
+            logger.warning("Error calculating duration for booking %s: %s", obj.id, e)
             return 0
 
     def get_total_price(self, obj):
         try:
             return float(obj.calculate_total_price())
         except Exception as e:
-            print(f"Error calculating price for booking {obj.id}: {e}")
+            logger.warning("Error calculating price for booking %s: %s", obj.id, e)
             return 0.0
-
-    def validate_booking_date(self, value):
-        """
-        Validate that booking date is not in the past.
-        """
-        if value < timezone.now().date():
-            raise serializers.ValidationError("Cannot book in the past.")
-        return value
-
-    def validate(self, data):
-        """
-        Validate booking data.
-        """
-        # Check if end_time is after start_time
-        if data.get("start_time") and data.get("end_time"):
-            if data["end_time"] <= data["start_time"]:
-                raise serializers.ValidationError(
-                    {"end_time": "End time must be after start time."}
-                )
-
-        # Check resource availability
-        resource = data.get("resource")
-        if resource and not resource.is_available:
-            raise serializers.ValidationError(
-                {"resource": "This resource is not currently available for booking."}
-            )
-
-        return data
 
 
 class BookingCreateSerializer(serializers.ModelSerializer):

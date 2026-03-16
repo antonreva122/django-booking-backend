@@ -84,8 +84,8 @@ class Booking(models.Model):
         if self.start_time and self.end_time and self.end_time <= self.start_time:
             errors["end_time"] = "End time must be after start time."
 
-        # Check if booking date is not in the past
-        if self.booking_date and self.booking_date < timezone.now().date():
+        # Check if booking date is not in the past (only for new bookings)
+        if self.pk is None and self.booking_date and self.booking_date < timezone.now().date():
             errors["booking_date"] = "Cannot book in the past."
 
         # Check if resource is available

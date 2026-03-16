@@ -1,9 +1,13 @@
+import logging
+from datetime import datetime
+
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
-from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from .models import Booking, Resource
 from .serializers import (
@@ -108,7 +112,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             # Log the error but don't fail the booking creation
-            print(f"Failed to send booking confirmation email: {e}")
+            logger.warning("Failed to send booking confirmation email: %s", e)
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def cancel(self, request, pk=None):
@@ -142,7 +146,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             # Log the error but don't fail the cancellation
-            print(f"Failed to send cancellation email: {e}")
+            logger.warning("Failed to send cancellation email: %s", e)
 
         serializer = self.get_serializer(booking)
         return Response({"message": "Booking cancelled successfully", "booking": serializer.data})

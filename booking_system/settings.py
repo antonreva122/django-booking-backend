@@ -89,9 +89,9 @@ WSGI_APPLICATION = "booking_system.wsgi.application"
 import dj_database_url
 
 # Use DATABASE_URL if available (Render), otherwise use SQLite for local dev
-DATABASE_URL = config("DATABASE_URL", default=None)
+DATABASE_URL = config("DATABASE_URL", default="")
 
-if DATABASE_URL:
+if DATABASE_URL and not DATABASE_URL.startswith("<"):
     # Production: Use PostgreSQL from DATABASE_URL (Render provides this)
     DATABASES = {
         "default": dj_database_url.config(
@@ -179,6 +179,10 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
         "rest_framework.parsers.FormParser",
     ),
+    "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": "5/minute",
+    },
 }
 
 # JWT Settings
