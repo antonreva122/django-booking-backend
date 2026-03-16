@@ -32,9 +32,11 @@ def _send_email_via_sendgrid(to_email, subject, html_content):
         bool: True if sent successfully, False otherwise
     """
     try:
-        html_content = _sanitize_for_email(html_content)
         api_key = django_settings.SENDGRID_API_KEY
-        from_email = django_settings.DEFAULT_FROM_EMAIL
+        from_email = _sanitize_for_email(django_settings.DEFAULT_FROM_EMAIL)
+        to_email = _sanitize_for_email(to_email)
+        subject = _sanitize_for_email(subject)
+        html_content = _sanitize_for_email(html_content)
 
         if not api_key:
             logger.warning("SENDGRID_API_KEY not set - email not sent")
