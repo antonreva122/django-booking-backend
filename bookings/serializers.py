@@ -27,7 +27,6 @@ class BookingSerializer(serializers.ModelSerializer):
     resource_details = ResourceSerializer(source="resource", read_only=True)
     user_email = serializers.EmailField(source="user.email", read_only=True)
     duration_hours = serializers.SerializerMethodField()
-    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -43,7 +42,6 @@ class BookingSerializer(serializers.ModelSerializer):
             "status",
             "notes",
             "duration_hours",
-            "total_price",
             "created_at",
             "updated_at",
         )
@@ -63,13 +61,6 @@ class BookingSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.warning("Error calculating duration for booking %s: %s", obj.id, e)
             return "0min"
-
-    def get_total_price(self, obj):
-        try:
-            return float(obj.calculate_total_price())
-        except Exception as e:
-            logger.warning("Error calculating price for booking %s: %s", obj.id, e)
-            return 0.0
 
 
 class BookingCreateSerializer(serializers.ModelSerializer):
