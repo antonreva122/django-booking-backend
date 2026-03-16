@@ -11,6 +11,14 @@ from sendgrid.helpers.mail import Mail
 logger = logging.getLogger(__name__)
 
 
+def _sanitize_for_email(text):
+    """Replace non-ASCII characters with their closest ASCII equivalents."""
+    import unicodedata
+    # Normalize unicode and encode to ASCII, replacing unknown chars
+    normalized = unicodedata.normalize('NFKD', text)
+    return normalized.encode('ascii', 'ignore').decode('ascii')
+
+
 def _send_email_via_sendgrid(to_email, subject, html_content):
     """
     Helper function to send email via SendGrid Web API.
@@ -24,6 +32,7 @@ def _send_email_via_sendgrid(to_email, subject, html_content):
         bool: True if sent successfully, False otherwise
     """
     try:
+        html_content = _sanitize_for_email(html_content)
         api_key = django_settings.SENDGRID_API_KEY
         from_email = django_settings.DEFAULT_FROM_EMAIL
 
