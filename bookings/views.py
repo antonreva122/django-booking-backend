@@ -72,7 +72,14 @@ class BookingViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Users see only their bookings, admins see all.
+        Auto-completes past bookings that are still PENDING or CONFIRMED.
         """
+        today = timezone.now().date()
+        Booking.objects.filter(
+            booking_date__lt=today,
+            status__in=["PENDING", "CONFIRMED"],
+        ).update(status="COMPLETED")
+
         user = self.request.user
         if user.is_staff:
             return Booking.objects.all()

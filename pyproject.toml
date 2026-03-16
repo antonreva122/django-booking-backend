@@ -17,10 +17,20 @@ extend-exclude = '''
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "booking_system.settings"
-python_files = ["tests.py", "test_*.py"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
 python_classes = ["Test"]
 python_functions = ["test_"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --cov=users --cov=bookings --cov=booking_system --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["users", "bookings", "booking_system"]
+omit = ["*/migrations/*", "*/tests/*", "manage.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 50
 
 [tool.isort]
 profile = "black"
