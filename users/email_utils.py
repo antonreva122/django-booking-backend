@@ -3,25 +3,16 @@ Email utility functions for sending transactional emails using SendGrid Web API.
 """
 
 import logging
+import requests
 
 from django.conf import settings as django_settings
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 logger = logging.getLogger(__name__)
 
 
-def _sanitize_for_email(text):
-    """Replace non-ASCII characters with their closest ASCII equivalents."""
-    import unicodedata
-    # Normalize unicode and encode to ASCII, replacing unknown chars
-    normalized = unicodedata.normalize('NFKD', text)
-    return normalized.encode('ascii', 'ignore').decode('ascii')
-
-
 def _send_email_via_sendgrid(to_email, subject, html_content):
     """
-    Helper function to send email via SendGrid Web API.
+    Helper function to send email via SendGrid Web API using requests directly.
 
     Args:
         to_email: Recipient email address
@@ -33,24 +24,32 @@ def _send_email_via_sendgrid(to_email, subject, html_content):
     """
     try:
         api_key = django_settings.SENDGRID_API_KEY
-        from_email = _sanitize_for_email(django_settings.DEFAULT_FROM_EMAIL)
-        to_email = _sanitize_for_email(to_email)
-        subject = _sanitize_for_email(subject)
-        html_content = _sanitize_for_email(html_content)
+        from_email = django_settings.DEFAULT_FROM_EMAIL
 
         if not api_key:
             logger.warning("SENDGRID_API_KEY not set - email not sent")
             return False
 
-        message = Mail(
-            from_email=from_email, to_emails=to_email, subject=subject, html_content=html_content
+        response = requests.post(
+            "https://api.sendgrid.com/v3/mail/send",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "personalizations": [{"to": [{"email": to_email}]}],
+                "from": {"email": from_email},
+                "subject": subject,
+                "content": [{"type": "text/html", "value": html_content}],
+            },
         )
 
-        sg = SendGridAPIClient(api_key)
-        response = sg.send(message)
-
-        logger.info(f"Email sent to {to_email}. Status: {response.status_code}")
-        return True
+        if response.status_code in (200, 201, 202):
+            logger.info(f"Email sent to {to_email}. Status: {response.status_code}")
+            return True
+        else:
+            logger.error(f"SendGrid error {response.status_code}: {response.text}")
+            return False
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
         return False
