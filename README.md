@@ -6,11 +6,12 @@ Django REST API for a booking system with user authentication and booking manage
 
 ### User Authentication
 - User registration with email verification
-- JWT-based authentication
+- JWT authentication with refresh token rotation and blacklisting (SimpleJWT)
 - Login/Logout functionality
 - Password reset via email
 - Editable user profiles
-- Secure password storage (Argon2)
+- Profile image uploads via Cloudinary
+- Secure password hashing (Argon2)
 
 ### Booking System
 - Create, view, update, and cancel bookings
@@ -26,7 +27,10 @@ Django REST API for a booking system with user authentication and booking manage
 - **Django 6.0.2** - Web framework
 - **Django REST Framework** - API development
 - **PostgreSQL** - Database
-- **JWT (Simple JWT)** - Token-based authentication
+- **SimpleJWT** - JWT authentication with token rotation and blacklisting
+- **Argon2** - Secure password hashing
+- **Cloudinary** - Profile image storage
+- **SendGrid** - Transactional email delivery
 - **CORS Headers** - Cross-origin resource sharing for React frontend
 
 ## Setup Instructions
@@ -192,13 +196,13 @@ django-booking-backend/
 │   ├── urls.py            # URL routing
 │   └── management/commands/  # Management commands
 │       └── complete_past_bookings.py
-├── tests/                  # Test suite (90 tests, 94% coverage)
+├── tests/                  # Test suite (100 tests)
 │   ├── conftest.py        # Shared fixtures
 │   ├── test_users.py      # User auth & profile tests
 │   ├── test_bookings.py   # Booking & resource tests
 │   ├── test_image_views.py # Image upload/delete tests
 │   ├── test_commands.py   # Management command tests
-│   └── test_api_root.py   # API root endpoint test
+│   └── test_api_root.py   # API root endpoint tests
 ├── manage.py              # Django management script
 ├── requirements.txt       # Python dependencies
 └── pyproject.toml         # pytest & coverage config
